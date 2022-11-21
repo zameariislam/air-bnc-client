@@ -1,75 +1,87 @@
+
 import React, { useContext } from 'react'
+import toast from 'react-hot-toast'
+
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import PrimaryButton from '../../components/Button/PrimaryButton'
-import { AuthContext } from '../../contexts/AuthProvider'
-import toast from 'react-hot-toast'
 import SmallSpinner from '../../components/spinner/SmallSpinner'
+import { AuthContext } from '../../contexts/AuthProvider'
+
 
 
 const Signup = () => {
-    const {
-        createUser,
-        updateUserProfile,
-        verifyEmail,
-        loading,
-        setLoading,
-        signInWithGoogle,
-    } = useContext(AuthContext)
-
+    const { user, createUser, updateUserProfile, verifyEmail,
+        signInWithGoogle, loading, setLoading } = useContext(AuthContext)
+    console.log(user)
     const navigate = useNavigate()
-    const location = useLocation()
-    const from = location.state?.from?.pathname || '/'
+    let location = useLocation();
 
-    const handleSubmit = event => {
-        event.preventDefault()
-        const name = event.target.name.value
 
-        const email = event.target.email.value
-        const password = event.target.password.value
+    const from = location?.state?.form?.pathname || '/'
 
-        // Image Upload
-        const image = event.target.image.files[0]
-        const formData = new FormData()
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        const name = e.target.name.value
+        const image = e.target.image.files[0]
+        const email = e.target.email.value
+        const password = e.target.password.value
+
+
+        let formData = new FormData()
+
         formData.append('image', image)
-        const url = `https://api.imgbb.com/1/upload?key=${process.env.REACT_APP_IMGBB_KEY}`
+
+        //  url 
+        const url = `https://api.imgbb.com/1/upload?key=3a23e3b03d072e5560b16694253bc0da`
+
+        // upload image 
 
         fetch(url, {
             method: 'POST',
-            body: formData,
+            body: formData
         })
             .then(res => res.json())
-            .then(imageData => {
-                // Create User
+            .then(data => {
                 createUser(email, password)
-                    .then(result => {
-                       
-                        updateUserProfile(name, imageData.data.display_url)
-                            .then(
-                                verifyEmail().then(() => {
-                                    toast.success(
-                                        'Please check your email for verification link.'
-                                    )
+                    .then(res => {
+                        updateUserProfile(name, data.data.display_url)
+                            .then(() => verifyEmail()
+                                .then(() => {
+                                    toast.success('Please Check your mail for verification')
                                     navigate(from, { replace: true })
                                 })
                             )
-                            .catch(err => console.log(err))
+                            .catch((err => {
+                                setLoading(false)
+
+                                toast.error(err.message)
+                                console.log(err.message)
+                            }))
+
                     })
 
-                    .catch(err => {
-                        console.log(err)
-                        setLoading(false)
-                    })
             })
-            .catch(err => console.log(err))
+            .catch(err => console.log(err.message))
+
+
+
+
     }
 
-    const handleGoogleSignin = () => {
-        signInWithGoogle().then(result => {
-            console.log(result.user)
-            
-            navigate(from, { replace: true })
-        })
+
+    const handleGoogleSignIn = () => {
+        signInWithGoogle()
+            .then(result => {
+                console.log(result.user)
+                navigate(from, { replace: true })
+            })
+            .catch(err => console.log(err.message))
+
+
     }
+
+
+
 
     return (
         <div className='flex justify-center items-center pt-8'>
@@ -78,8 +90,7 @@ const Signup = () => {
                     <h1 className='my-3 text-4xl font-bold'>Signup</h1>
                     <p className='text-sm text-gray-400'>Create a new account</p>
                 </div>
-                <form
-                    onSubmit={handleSubmit}
+                <form onSubmit={handleSubmit}
                     noValidate=''
                     action=''
                     className='space-y-12 ng-untouched ng-pristine ng-valid'
@@ -93,6 +104,7 @@ const Signup = () => {
                                 type='text'
                                 name='name'
                                 id='name'
+                                required
                                 placeholder='Enter Your Name Here'
                                 className='w-full px-3 py-2 border rounded-md border-gray-300 focus:outline-green-500 bg-gray-200 text-gray-900'
                                 data-temp-mail-org='0'
@@ -103,11 +115,11 @@ const Signup = () => {
                                 Select Image:
                             </label>
                             <input
-                                required
                                 type='file'
                                 id='image'
                                 name='image'
                                 accept='image/*'
+                                required
                             />
                         </div>
                         <div>
@@ -131,10 +143,10 @@ const Signup = () => {
                                 </label>
                             </div>
                             <input
-                                required
                                 type='password'
                                 name='password'
                                 id='password'
+                                required
                                 placeholder='*******'
                                 className='w-full px-3 py-2 border rounded-md border-gray-300 bg-gray-200 focus:outline-green-500 text-gray-900'
                             />
@@ -146,7 +158,9 @@ const Signup = () => {
                                 type='submit'
                                 classes='w-full px-8 py-3 font-semibold rounded-md bg-gray-900 hover:bg-gray-700 hover:text-white text-gray-100'
                             >
-                                {loading ? <SmallSpinner /> : 'Sign Up'}
+                                {
+                                    loading ? <SmallSpinner /> : 'Sign up'
+                                }
                             </PrimaryButton>
                         </div>
                     </div>
@@ -159,11 +173,7 @@ const Signup = () => {
                     <div className='flex-1 h-px sm:w-16 dark:bg-gray-700'></div>
                 </div>
                 <div className='flex justify-center space-x-4'>
-                    <button
-                        onClick={handleGoogleSignin}
-                        aria-label='Log in with Google'
-                        className='p-3 rounded-sm'
-                    >
+                    <button onClick={handleGoogleSignIn} aria-label='Log in with Google' className='p-3 rounded-sm'>
                         <svg
                             xmlns='http://www.w3.org/2000/svg'
                             viewBox='0 0 32 32'
