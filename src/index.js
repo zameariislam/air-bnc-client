@@ -5,12 +5,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Toaster } from 'react-hot-toast';
 import 'react-day-picker/dist/style.css';
+import AuthProvider from './contexts/AuthProvider';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Toaster />
-    <App />
+    <AuthProvider>
+      <Toaster />
+      <App />
+    </AuthProvider>
+
   </React.StrictMode>
 );
 
